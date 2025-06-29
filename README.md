@@ -34,5 +34,6 @@ Manual test creation can be time-consuming and repetitive. This project solves t
 ### 1. Clone the Repository
 
 ```bash[
-git clone https://github.com/yourusername/generate-tests.git
-](https://github.com/NikhilTej2006/CLAT-AI.git)
+git clone:(https://github.com/NikhilTej2006/CLAT-AI.git)]
+
+ The app.py file serves as the central Flask backend and is responsible for routing and handling both generate-test.html (test creation) and practice.html (test attempt interface) via defined API endpoints or template rendering.

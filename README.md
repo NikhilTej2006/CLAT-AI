@@ -33,6 +33,6 @@ Manual test creation can be time-consuming and repetitive. This project solves t
 
 ### 1. Clone the Repository
 
-```bash
+```bash[
 git clone https://github.com/yourusername/generate-tests.git
-cd generate-tests
+](https://github.com/NikhilTej2006/CLAT-AI.git)

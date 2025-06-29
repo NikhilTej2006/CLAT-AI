@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QT AI Mentor - CLAT.GPT.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #1e293b;
+            color: white;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+            padding: 24px 0;
+        }
+
+        .hamburger-menu {
+            position: absolute;
+            top: 20px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .hamburger-menu {
+            right: 15px;
+        }
+
+        .hamburger-line {
+            width: 20px;
+            height: 2px;
+            background: white;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .logo {
+            padding: 0 24px 24px;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .sidebar.collapsed .logo {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+            opacity: 1;
+        }
+
+        .sidebar.collapsed .nav-item {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        .nav-item:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .nav-item::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .nav-item.home::before { content: '🏠'; }
+        .nav-item.practice::before { content: '📚'; }
+        .nav-item.research::before { content: '🔍'; }
+        .nav-item.mentor::before { content: '🤖'; }
+        .nav-item.chatbot::before { content: '💬'; }
+        .nav-item.tests::before { content: '📝'; }
+        .nav-item.settings::before { content: '⚙'; }
+        .nav-item.appearance::before { content: '🎨'; }
+        .nav-item.trash::before { content: '🗑'; }
+        .nav-item.progress::before { content: '📊'; }
+        
+
+        .nav-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            border-top: 1px solid #334155;
+            padding-top: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-bottom {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 24px 40px;
+            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            animation: slideInFromTop 0.6s ease-out;
+        }
+
+        .greeting {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .topic-selector {
+            width: 300px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .selector-header {
+            padding: 24px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .selector-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .topic-list {
+            flex: 1;
+            padding: 16px;
+        }
+
+        .topic-category {
+            margin-bottom: 24px;
+        }
+
+        .category-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .topic-item:hover {
+            border-color: #8b5cf6;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+        }
+
+        .topic-item.active {
+            border-color: #8b5cf6;
+            background: #f3f4f6;
+        }
+
+        .topic-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .topic-info {
+            flex: 1;
+        }
+
+        .topic-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .topic-desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .question-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .question-header {
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+
+        .generate-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .question-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            color: #64748b;
+            margin-top: 100px;
+        }
+
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .question-container {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .question-container.show {
+            display: block;
+        }
+
+        .question-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .passage-output {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        .single-question {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-label {
+            font-weight: 600;
+            color: #8b5cf6;
+            margin-bottom: 8px;
+        }
+
+        .question-text {
+            font-size: 16px;
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .option {
+            padding: 12px 16px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover {
+            border-color: #8b5cf6;
+            background: #faf5ff;
+        }
+
+        .option.selected {
+            border-color: #8b5cf6;
+            background: #f3f4f6;
+        }
+
+        .option.correct {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .option.incorrect {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border: 2px solid #8b5cf6;
+            border-radius: 8px;
+            background: white;
+            color: #8b5cf6;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 12px;
+        }
+
+        .action-btn:hover {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .action-btn.primary {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: #7c3aed;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+
+        .answer-result {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            display: none;
+        }
+
+        .answer-result.show {
+            display: block;
+        }
+
+        .solution {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .error-message {
+            color: #ef4444;
+            text-align: center;
+            padding: 20px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .content-area {
+                flex-direction: column;
+            }
+            
+            .topic-selector {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .topic-list {
+                display: flex;
+                gap: 16px;
+                overflow-x: auto;
+                padding: 16px;
+            }
+            
+            .topic-category {
+                margin-bottom: 0;
+                min-width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                order: 2;
+            }
+
+            .sidebar.collapsed {
+                width: 100%;
+                height: 60px;
+            }
+
+            .main-content {
+                order: 1;
+            }
+
+            .header {
+                padding: 16px 20px;
+            }
+
+            .greeting {
+                font-size: 24px;
+            }
+
+            .question-content {
+                padding: 16px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar" id="sidebar">
+            <button class="hamburger-menu" id="hamburgerMenu" onclick="toggleSidebar()">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </button>
+            
+            <div class="logo">CLAT.GPT.1</div>
+            
+            <button class="nav-item home" onclick="navigateTo('home')">
+                <span class="nav-text">Home</span>
+            </button>
+            <button class="nav-item practice" onclick="navigateTo('practice-online')">
+                <span class="nav-text">Practice Online</span>
+            </button>
+            <button class="nav-item research" onclick="navigateTo('gk-research')">
+                <span class="nav-text">GK Research Engine</span>
+            </button>
+            <button class="nav-item mentor active" onclick="navigateTo('qt-mentor')">
+                <span class="nav-text">QT AI Mentor</span>
+            </button>
+            <button class="nav-item chatbot" onclick="navigateTo('lexa-chatbot')">
+                <span class="nav-text">Lexa Chatbot</span>
+            </button>
+            <button class="nav-item tests" onclick="navigateTo('generate-tests')">
+                <span class="nav-text">Generate Tests</span>
+            </button>
+            <button class="nav-item progress" onclick="navigateTo('progress')">
+                <span class="nav-text">Progress Tracker</span>
+            </button>
+
+            
+            <div class="sidebar-bottom">
+                <button class="nav-item settings" onclick="navigateTo('settings')">
+                    <span class="nav-text">Settings</span>
+                </button>
+                <button class="nav-item appearance" onclick="navigateTo('appearance')">
+                    <span class="nav-text">Appearance</span>
+                </button>
+                <button class="nav-item trash" onclick="navigateTo('trash')">
+                    <span class="nav-text">Trash</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <h1 class="greeting">Hello Student! 🤖</h1>
+                <p class="page-subtitle">Master Quantitative Techniques with AI-powered step-by-step solutions and expert tips</p>
+            </header>
+
+            <div class="content-area">
+                <!-- Topic Selector -->
+                <div class="topic-selector">
+                    <div class="selector-header">
+                        <h2 class="selector-title">Select Topic</h2>
+                    </div>
+                    
+                    <div class="topic-list" id="topicList">
+                        <div class="topic-category">
+                            <div class="category-title">Data Interpretation</div>
+                            <div class="topic-item" data-topic="tables" onclick="selectTopic(this)">
+                                <div class="topic-icon">📊</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Tables</div>
+                                    <div class="topic-desc">Data analysis from tables</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="bar-charts" onclick="selectTopic(this)">
+                                <div class="topic-icon">📈</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Bar Charts</div>
+                                    <div class="topic-desc">Comparative data analysis</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="line-graphs" onclick="selectTopic(this)">
+                                <div class="topic-icon">📉</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Line Graphs</div>
+                                    <div class="topic-desc">Trend analysis</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="pie-charts" onclick="selectTopic(this)">
+                                <div class="topic-icon">🥧</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Pie Charts</div>
+                                    <div class="topic-desc">Percentage distribution</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="topic-category">
+                            <div class="category-title">Mathematics</div>
+                            <div class="topic-item" data-topic="percentages" onclick="selectTopic(this)">
+                                <div class="topic-icon">%</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Percentages</div>
+                                    <div class="topic-desc">Percentage calculations</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="ratios" onclick="selectTopic(this)">
+                                <div class="topic-icon">⚖</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Ratios & Proportions</div>
+                                    <div class="topic-desc">Comparative relationships</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="averages" onclick="selectTopic(this)">
+                                <div class="topic-icon">📊</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Averages</div>
+                                    <div class="topic-desc">Mean, median, mode</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="profit-loss" onclick="selectTopic(this)">
+                                <div class="topic-icon">💰</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Profit & Loss</div>
+                                    <div class="topic-desc">Business mathematics</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="topic-category">
+                            <div class="category-title">Advanced Topics</div>
+                            <div class="topic-item" data-topic="compound-interest" onclick="selectTopic(this)">
+                                <div class="topic-icon">🏦</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Compound Interest</div>
+                                    <div class="topic-desc">Interest calculations</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="time-work" onclick="selectTopic(this)">
+                                <div class="topic-icon">⏰</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Time & Work</div>
+                                    <div class="topic-desc">Work rate problems</div>
+                                </div>
+                            </div>
+                            <div class="topic-item" data-topic="speed-distance" onclick="selectTopic(this)">
+                                <div class="topic-icon">🚗</div>
+                                <div class="topic-info">
+                                    <div class="topic-name">Speed & Distance</div>
+                                    <div class="topic-desc">Motion problems</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question Area -->
+                <div class="question-area">
+                    <div class="question-header">
+                        <h2 class="question-title" id="questionTitle">QT AI Mentor</h2>
+                        <button class="generate-btn" id="generateBtn" onclick="generateQuestion()" disabled>
+                            Generate Quiz
+                        </button>
+                    </div>
+
+                    <div class="question-content">
+                        <!-- Welcome Screen -->
+                        <div class="welcome-screen" id="welcomeScreen">
+                            <div class="welcome-icon">🤖</div>
+                            <div class="welcome-title">Welcome to QT AI Mentor!</div>
+                            <div class="welcome-text">
+                                Select a topic to get started with AI-powered quantitative practice. 
+                                I'll provide step-by-step solutions, useful tricks, and help you avoid common errors.
+                            </div>
+                        </div>  
+
+                        <!-- Question Container -->
+                        <div class="question-container" id="questionContainer">
+                            <!-- Dynamic content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentTopic = null;
+        let quizData = [];
+        let userAnswers = [];
+
+        function getUsername() {
+            return localStorage.getItem('username') || 'Student';
+        }
+
+        function updateGreeting() {
+            const username = getUsername();
+            const greetingEl = document.querySelector('.greeting');
+            if (greetingEl) greetingEl.textContent = `Hello ${username}! 🤖`;
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar')?.classList.toggle('collapsed');
+        }
+
+        function navigateTo(page) {
+            const pages = {
+                'home': '2.homepage.html',
+                'practice-online': 'practice-online.html',
+                'gk-research': 'gk-research.html',
+                'qt-mentor': 'qt-mentor.html',
+                'lexa-chatbot': 'lexa-chatbot.html',
+                'generate-tests': 'generate-tests.html',
+                'settings': 'settings.html',
+                'appearance': 'appearance.html',
+                'trash': 'trash.html',
+                'progress': 'progress.html',
+     
+            };
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        function selectTopic(element) {
+            document.querySelectorAll('.topic-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            currentTopic = element.dataset.topic;
+
+            const topicName = element.querySelector('.topic-name').textContent;
+            document.getElementById('questionTitle').textContent = topicName;
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('questionContainer').innerHTML = '';
+            document.getElementById('questionContainer').classList.remove('show');
+        }
+
+        async function generateQuestion() {
+            if (!currentTopic) return;
+
+            const generateBtn = document.getElementById('generateBtn');
+            const questionContainer = document.getElementById('questionContainer');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+
+            // Show loading state
+            generateBtn.textContent = 'Generating...';
+            generateBtn.disabled = true;
+            questionContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div class="loading-spinner"></div>
+                    <p style="font-size: 16px; margin-top: 16px; color: #64748b;">
+                        Generating your CLAT-style passage and quiz...
+                    </p>
+                </div>
+            `;
+            questionContainer.classList.add('show');
+            welcomeScreen.style.display = 'none';
+// http://127.0.0.1:5000/qt/generate-question
+            try {
+                const response = await fetch("http://127.0.0.1:5000/qt/generate-question", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ topic: currentTopic })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+
+                const rawOutput = data.rawOutput;
+                console.log('Raw output:', rawOutput);
+
+                // Parse the response more robustly
+                const parsedData = parseQuizData(rawOutput);
+                
+                if (!parsedData.passage || parsedData.questions.length === 0) {
+                    throw new Error('Could not parse the generated content properly');
+                }
+
+                // Store quiz data globally
+                quizData = parsedData.questions;
+                userAnswers = Array(parsedData.questions.length).fill(null);
+
+                // Render the quiz
+                renderQuiz(parsedData.passage, parsedData.questions);
+
+            } catch (error) {
+                console.error('Error generating question:', error);
+                questionContainer.innerHTML = `
+                    <div class="error-message">
+                        <strong>❌ Error:</strong> ${error.message}<br>
+                        <small>Please check if the Flask server is running on http://127.0.0.1:5000</small>
+                        <br><br>
+                        <button class="action-btn" onclick="generateQuestion()">🔄 Try Again</button>
+                    </div>
+                `;
+            } finally {
+                generateBtn.textContent = 'Generate Quiz';
+                generateBtn.disabled = false;
+            }
+        }
+
+        function parseQuizData(rawOutput) {
+            try {
+                console.log('Parsing raw output:', rawOutput);
+                
+                // More flexible parsing approach
+                let passage = '';
+                let questions = [];
+                
+                // Split by Answer Key (case insensitive)
+                const answerKeyRegex = /Answer\s*Key\s*:?/i;
+                const parts = rawOutput.split(answerKeyRegex);
+                const beforeAnswerKey = parts[0] || '';
+                const answerKeySection = parts[1] || '';
+
+                // Extract passage - everything before the first question number pattern
+                const passageMatch = beforeAnswerKey.match(/^([\s\S]*?)(?=\d+\.\d+)/);
+                if (passageMatch) {
+                    passage = passageMatch[1].trim();
+                    // Clean up passage
+                    passage = passage.replace(/^\d+\s+/, ''); // Remove leading number
+                    passage = passage.trim();
+                }
+
+                // Extract questions - more flexible regex
+                const questionPattern = /(\d+\.\d+)\s*(.*?)(?=\d+\.\d+|Answer\s*Key|$)/gs;
+                let questionMatch;
+                
+                while ((questionMatch = questionPattern.exec(beforeAnswerKey)) !== null) {
+                    const questionLabel = questionMatch[1];
+                    const questionContent = questionMatch[2].trim();
+                    
+                    if (!questionContent) continue;
+                    
+                    // Split question content into lines
+                    const lines = questionContent.split('\n').map(line => line.trim()).filter(line => line);
+                    
+                    if (lines.length < 5) continue; // Need at least question + 4 options
+                    
+                    // First line is the question
+                    const questionText = lines[0];
+                    
+                    // Extract options - look for (A), (B), (C), (D) patterns
+                    const options = [];
+                    for (let i = 1; i < lines.length && options.length < 4; i++) {
+                        const line = lines[i];
+                        // Match various option formats: (A), A), A., etc.
+                        if (line.match(/^\s*\(?[A-D]\)?\.?\s/)) {
+                            const optionText = line.replace(/^\s*\(?[A-D]\)?\.?\s*/, '').trim();
+                            if (optionText) {
+                                options.push(optionText);
+                            }
+                        }
+                    }
+                    
+                    if (options.length === 4) {
+                        questions.push({
+                            label: questionLabel,
+                            question: questionText,
+                            options: options,
+                            correct: 0, // Default to A, will be updated from answer key
+                            explanation: 'Explanation not available.'
+                        });
+                    }
+                }
+
+                // Parse answer key
+                if (answerKeySection && questions.length > 0) {
+                    const answerPattern = /(\d+\.\d+)\s*[–-]\s*\(([A-D])\)\s*(.*?)(?=\d+\.\d+|$)/gs;
+                    let answerMatch;
+                    
+                    while ((answerMatch = answerPattern.exec(answerKeySection)) !== null) {
+                        const label = answerMatch[1];
+                        const correctOption = answerMatch[2];
+                        const explanation = answerMatch[3].trim();
+                        
+                        // Find matching question and update
+                        const questionIndex = questions.findIndex(q => q.label === label);
+                        if (questionIndex !== -1) {
+                            questions[questionIndex].correct = correctOption.charCodeAt(0) - 65; // A=0, B=1, etc.
+                            questions[questionIndex].explanation = explanation || 'Explanation not available.';
+                        }
+                    }
+                }
+
+                console.log('Parsed data:', { passage, questions });
+                return { passage, questions };
+                
+            } catch (error) {
+                console.error('Error parsing quiz data:', error);
+                
+                // Fallback: try to extract at least some content
+                const lines = rawOutput.split('\n').filter(line => line.trim());
+                let passage = '';
+                let questions = [];
+                
+                // Simple fallback - take first few lines as passage
+                if (lines.length > 10) {
+                    passage = lines.slice(0, 5).join(' ').trim();
+                    
+                    // Create a simple question as fallback
+                    questions = [{
+                        label: '1.1',
+                        question: 'Based on the passage above, what can be concluded?',
+                        options: [
+                            'Option A - Analysis required',
+                            'Option B - Further calculation needed',
+                            'Option C - Data interpretation required',
+                            'Option D - Cannot be determined'
+                        ],
+                        correct: 0,
+                        explanation: 'This is a fallback question. Please try generating again for better content.'
+                    }];
+                }
+                
+                return { passage, questions };
+            }
+        }
+
+        function renderQuiz(passage, questions) {
+            const questionContainer = document.getElementById('questionContainer');
+            
+            let html = `
+                <div class="question-section">
+                    <div class="section-title">📘 CLAT-Style Quantitative Aptitude Set</div>
+                    <div class="passage-output">${passage}</div>
+            `;
+
+            questions.forEach((q, index) => {
+                html += `
+                    <div class="single-question" id="q-${index}">
+                        <div class="question-label">${q.label}</div>
+                        <div class="question-text">${q.question}</div>
+                        <div class="options-list">
+                            ${q.options.map((option, optIndex) => `
+                                <div class="option" onclick="selectOption(${index}, ${optIndex})" id="q-${index}-opt-${optIndex}">
+                                    (${String.fromCharCode(65 + optIndex)}) ${option}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="action-btn primary" onclick="checkAnswer(${index})" id="check-${index}">
+                            Check Answer
+                        </button>
+                        <div class="answer-result" id="answer-${index}"></div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="generateQuestion()">🔁 Generate New Set</button>
+                        <button class="action-btn" onclick="checkAllAnswers()">📝 Check All Answers</button>
+                    </div>
+                </div>
+            `;
+
+            questionContainer.innerHTML = html;
+        }
+
+        function selectOption(questionIndex, optionIndex) {
+            // Don't allow selection if answer already checked
+            if (document.getElementById(`answer-${questionIndex}`).classList.contains('show')) {
+                return;
+            }
+
+            userAnswers[questionIndex] = optionIndex;
+
+            // Update visual selection
+            for (let i = 0; i < 4; i++) {
+                const optEl = document.getElementById(`q-${questionIndex}-opt-${i}`);
+                if (optEl) optEl.classList.remove('selected');
+            }
+            const selectedEl = document.getElementById(`q-${questionIndex}-opt-${optionIndex}`);
+            if (selectedEl) selectedEl.classList.add('selected');
+        }
+
+        function checkAnswer(questionIndex) {
+            const question = quizData[questionIndex];
+            const userSelected = userAnswers[questionIndex];
+            const resultEl = document.getElementById(`answer-${questionIndex}`);
+            const checkBtn = document.getElementById(`check-${questionIndex}`);
+
+            if (userSelected === null) {
+                resultEl.innerHTML = `<p style="color: #ef4444; font-weight: 600;">❗ Please select an option first.</p>`;
+                resultEl.classList.add('show');
+                return;
+            }
+
+            // Disable all options for this question
+            for (let i = 0; i < 4; i++) {
+                const optEl = document.getElementById(`q-${questionIndex}-opt-${i}`);
+                if (optEl) {
+                    optEl.style.pointerEvents = 'none';
+                    
+                    if (i === question.correct) {
+                        optEl.classList.add('correct');
+                    } else if (i === userSelected && userSelected !== question.correct) {
+                        optEl.classList.add('incorrect');
+                    }
+                }
+            }
+
+            // Show result
+            const isCorrect = userSelected === question.correct;
+            resultEl.innerHTML = `
+                <div class="solution">
+                    <div style="margin-bottom: 12px;">
+                        <strong style="color: ${isCorrect ? '#10b981' : '#ef4444'};">
+                            ${isCorrect ? '✅ Correct!' : '❌ Incorrect'}
+                        </strong>
+                    </div>
+                    <div><strong>Correct Answer:</strong> (${String.fromCharCode(65 + question.correct)})</div>
+                    <div style="margin-top: 8px;"><strong>Explanation:</strong> ${question.explanation}</div>
+                </div>
+            `;
+            resultEl.classList.add('show');
+            
+            // Disable check button
+            if (checkBtn) {
+                checkBtn.disabled = true;
+                checkBtn.textContent = 'Answered';
+            }
+        }
+
+        function checkAllAnswers() {
+            for (let i = 0; i < quizData.length; i++) {
+                const resultEl = document.getElementById(`answer-${i}`);
+                if (resultEl && !resultEl.classList.contains('show')) {
+                    checkAnswer(i);
+                }
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                toggleSidebar();
+            }
+        });
+
+        function checkScreenSize() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 768) {
+                sidebar?.classList.add('collapsed');
+            } else {
+                sidebar?.classList.remove('collapsed');
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            updateGreeting();
+            checkScreenSize();
+        });
+
+        window.addEventListener('resize', checkScreenSize);
+    </script>
+</body>
+</html>

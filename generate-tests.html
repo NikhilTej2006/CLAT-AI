@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Tests - CLAT.GPT.1</title>
+    <!-- Add jsPDF library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #1e293b;
+            color: white;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+            padding: 24px 0;
+        }
+
+        .hamburger-menu {
+            position: absolute;
+            top: 20px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-line {
+            width: 20px;
+            height: 2px;
+            background: white;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .logo {
+            padding: 0 24px 24px;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            border-bottom: 1px solid #334155;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .sidebar.collapsed .logo {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+            opacity: 1;
+        }
+
+        .sidebar.collapsed .nav-item {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        .nav-item:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .nav-item::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .nav-item.home::before { content: '🏠'; }
+        .nav-item.practice::before { content: '📚'; }
+        .nav-item.research::before { content: '🔍'; }
+        .nav-item.mentor::before { content: '🤖'; }
+        .nav-item.chatbot::before { content: '💬'; }
+        .nav-item.tests::before { content: '📝'; }
+        .nav-item.progress::before { content: '📊'; }
+        .nav-item.settings::before { content: '⚙️'; }
+        .nav-item.appearance::before { content: '🎨'; }
+        .nav-item.trash::before { content: '🗑️'; }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            border-top: 1px solid #334155;
+            padding-top: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-bottom {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            background: white;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .timer-container {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            display: none;
+            z-index: 100;
+        }
+
+        .timer-container.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            animation: pulse 1s infinite;
+        }
+
+        .timer-container.critical {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header {
+            margin-bottom: 40px;
+            animation: slideInFromTop 0.6s ease-out;
+        }
+
+        .greeting {
+            font-size: 36px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #64748b;
+            margin-bottom: 40px;
+        }
+
+        .test-generator {
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .form-section {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-select:hover {
+            border-color: #94a3b8;
+        }
+
+        .build-button {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .build-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .build-button:active {
+            transform: translateY(0);
+        }
+
+        .build-button.loading {
+            pointer-events: none;
+        }
+
+        .build-button.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .form-description {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 20px;
+            margin: 0 auto 24px;
+            font-size: 32px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* Test Interface Styles */
+        .test-interface {
+            display: none;
+            animation: slideInFromBottom 0.6s ease-out;
+        }
+
+        .test-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+            margin-right: 200px;
+        }
+
+        .test-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .test-info {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .question-container {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+
+        .question-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3b82f6;
+            margin-bottom: 16px;
+        }
+
+        .passage {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        .passage-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .question {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .option.selected {
+            border-color: #3b82f6;
+            background: #dbeafe;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            accent-color: #3b82f6;
+        }
+
+        .test-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+        }
+
+        .nav-button {
+            padding: 12px 24px;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            background: white;
+            color: #3b82f6;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-button:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-button {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .submit-button:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 16px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .new-test-button {
+            background: #6b7280;
+            color: white;
+        }
+
+        .new-test-button:hover {
+            background: #4b5563;
+        }
+
+        .download-button {
+            background: #059669;
+            color: white;
+        }
+
+        .download-button:hover {
+            background: #047857;
+        }
+
+        .download-button.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .download-button.loading::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        /* Animations */
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromBottom {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                order: 2;
+            }
+
+            .sidebar.collapsed {
+                width: 100%;
+                height: 60px;
+            }
+
+            .main-content {
+                order: 1;
+                padding: 20px;
+            }
+
+            .timer-container {
+                top: 10px;
+                right: 20px;
+                font-size: 16px;
+                padding: 8px 16px;
+            }
+
+            .test-header {
+                margin-right: 0;
+            }
+
+            .test-generator {
+                max-width: 100%;
+            }
+
+            .form-section,
+            .question-container {
+                padding: 24px;
+            }
+
+            .test-navigation {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .action-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar" id="sidebar">
+            <button class="hamburger-menu" id="hamburgerMenu" onclick="toggleSidebar()">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </button>
+            
+            <div class="logo">CLAT.GPT.1</div>
+            
+            <button class="nav-item home" onclick="navigateTo('home')">
+                <span class="nav-text">Home</span>
+            </button>
+            <button class="nav-item practice" onclick="navigateTo('practice-online')">
+                <span class="nav-text">Practice Online</span>
+            </button>
+            <button class="nav-item research" onclick="navigateTo('gk-research')">
+                <span class="nav-text">GK Research Engine</span>
+            </button>
+            <button class="nav-item mentor" onclick="navigateTo('qt-mentor')">
+                <span class="nav-text">QT AI Mentor</span>
+            </button>
+            <button class="nav-item chatbot" onclick="navigateTo('lexa-chatbot')">
+                <span class="nav-text">Lexa Chatbot</span>
+            </button>
+            <button class="nav-item tests active" onclick="navigateTo('generate-tests')">
+                <span class="nav-text">Generate Tests</span>
+            </button>
+            <button class="nav-item progress" onclick="navigateTo('progress')">
+                <span class="nav-text">Progress Tracker</span>
+            </button>
+            
+            <div class="sidebar-bottom">
+                <button class="nav-item settings" onclick="navigateTo('settings')">
+                    <span class="nav-text">Settings</span>
+                </button>
+                <button class="nav-item appearance" onclick="navigateTo('appearance')">
+                    <span class="nav-text">Appearance</span>
+                </button>
+                <button class="nav-item trash" onclick="navigateTo('trash')">
+                    <span class="nav-text">Trash</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- Timer -->
+            <div class="timer-container" id="timerContainer">
+                <span id="timerDisplay">00:00</span>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <!-- Test Generator Form -->
+            <div id="testGenerator" class="test-generator">
+                <header class="header">
+                    <h1 class="greeting">Hey Student! 👋</h1>
+                    <p class="page-subtitle">Let's create a customized test for your CLAT preparation</p>
+                </header>
+
+                <div class="form-section">
+                    <div class="icon-wrapper">📝</div>
+                    <h2 class="section-title">Generate Sectional Test</h2>
+                    
+                    <form id="testForm">
+                        <div class="form-group">
+                            <label class="form-label" for="section">Section</label>
+                            <select class="form-select" id="section" required onchange="updateSubcategories()">
+                                <option value="">Select a section</option>
+                                <option value="english">English</option>
+                                <option value="logical">Logical Reasoning</option>
+                                <option value="legal">Legal Reasoning</option>
+                                <option value="quantitative">Quantitative Analysis</option>
+                                <option value="gk">General Knowledge</option>
+                            </select>
+                            <p class="form-description">Choose the subject area you want to practice</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="subcategory">Subcategory</label>
+                            <select class="form-select" id="subcategory" required disabled>
+                                <option value="">Select a subcategory</option>
+                            </select>
+                            <p class="form-description">Choose the specific topic within the section</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="passages">Number of Passages</label>
+                            <select class="form-select" id="passages" required>
+                                <option value="">Select number of passages</option>
+                            </select>
+                            <p class="form-description" id="passageDescription">Choose how many reading passages you want in your test</p>
+                        </div>
+
+                        <button type="submit" class="build-button" id="buildButton">
+                            <span id="buttonText">Build Test</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Test Interface -->
+            <div id="testInterface" class="test-interface">
+                <div class="test-header">
+                    <h2 class="test-title" id="testTitle">Test Session</h2>
+                    <p class="test-info" id="testInfo">Subcategory • Passages • Questions</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="question-container" id="questionContainer">
+                    <!-- Questions will be dynamically loaded here -->
+                </div>
+
+                <div class="test-navigation">
+                    <button class="nav-button" id="prevButton" onclick="previousQuestion()" disabled>Previous</button>
+                    <span id="questionCounter">Question 1 of 15</span>
+                    <button class="nav-button" id="nextButton" onclick="nextQuestion()">Next</button>
+                    <button class="nav-button submit-button" id="submitButton" onclick="submitTest()" style="display: none;">Submit Test</button>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-button download-button" id="downloadButton" onclick="downloadTestPDF()">
+                        📄 Download Test PDF
+                    </button>
+                    <button class="action-button new-test-button" onclick="startNewTest()">
+                        🔄 Generate New Test
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+
+        let currentTest = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let timerInterval = null;
+        let timeRemaining = 0;
+        let totalTime = 0;
+        let testMetadata = {};
+
+        // Section configurations
+        const sectionConfig = {
+            english: {
+                maxPassages: 4,
+                timePerQuestion: 60,
+                subcategories: [
+                    'Reading Comprehension',
+                    'Grammar',
+                    'Vocabulary',
+                    'Para Jumbles',
+                    'Critical Reasoning'
+                ]
+            },
+            logical: {
+                maxPassages: 4,
+                timePerQuestion: 60,
+                subcategories: [
+                    'Logical Reasoning',
+                    'Analytical Reasoning',
+                    'Critical Reasoning',
+                    'Puzzles',
+                    'Syllogisms'
+                ]
+            },
+            legal: {
+                maxPassages: 6,
+                timePerQuestion: 60,
+                subcategories: [
+                    'Constitutional Law',
+                    'Contract Law',
+                    'Tort Law',
+                    'Criminal Law',
+                    'Legal Principles',
+                    'Legal Maxims'
+                ]
+            },
+            quantitative: {
+                maxPassages: 2,
+                timePerQuestion: 60,
+                subcategories: [
+                    'Arithmetic',
+                    'Algebra',
+                    'Geometry',
+                    'Data Interpretation',
+                    'Percentages',
+                    'Profit & Loss'
+                ]
+            },
+            gk: {
+                maxPassages: 5,
+                timePerQuestion: 90,
+                subcategories: [
+                    'Current Affairs',
+                    'History',
+                    'Geography',
+                    'Politics',
+                    'Economics',
+                    'Science & Technology',
+                    'Sports',
+                    'Awards & Honours'
+                ]
+            }
+        };
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Update subcategories based on selected section
+        function updateSubcategories() {
+            const sectionSelect = document.getElementById('section');
+            const subcategorySelect = document.getElementById('subcategory');
+            const passagesSelect = document.getElementById('passages');
+            
+            const selectedSection = sectionSelect.value;
+            
+            // Clear subcategories and passages
+            subcategorySelect.innerHTML = '<option value="">Select a subcategory</option>';
+            passagesSelect.innerHTML = '<option value="">Select number of passages</option>';
+            
+            if (selectedSection && sectionConfig[selectedSection]) {
+                const config = sectionConfig[selectedSection];
+                
+                // Enable subcategory dropdown
+                subcategorySelect.disabled = false;
+                
+                // Populate subcategories
+                config.subcategories.forEach(subcategory => {
+                    const option = document.createElement('option');
+                    option.value = subcategory.toLowerCase().replace(/\s+/g, '-');
+                    option.textContent = subcategory;
+                    subcategorySelect.appendChild(option);
+                });
+                
+                // Populate passages dropdown
+                for (let i = 1; i <= config.maxPassages; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `${i} Passage${i > 1 ? 's' : ''}`;
+                    passagesSelect.appendChild(option);
+                }
+                
+                // Update description
+                document.getElementById('passageDescription').textContent = 
+                    `Choose how many passages you want in your test (max ${config.maxPassages} for ${selectedSection})`;
+            } else {
+                subcategorySelect.disabled = true;
+            }
+        }
+
+        // Timer functions
+        function startTimer(totalSeconds) {
+            timeRemaining = totalSeconds;
+            totalTime = totalSeconds;
+            
+            const timerContainer = document.getElementById('timerContainer');
+            timerContainer.style.display = 'block';
+            
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= totalTime * 0.25 && timeRemaining > totalTime * 0.1) {
+                    timerContainer.className = 'timer-container warning';
+                } else if (timeRemaining <= totalTime * 0.1) {
+                    timerContainer.className = 'timer-container critical';
+                }
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            document.getElementById('timerContainer').style.display = 'none';
+        }
+
+        function handleTimeUp() {
+            alert('Time is up! Moving to the next question.');
+            if (currentQuestionIndex < currentTest.length - 1) {
+                nextQuestion();
+            } else {
+                submitTest();
+            }
+        }
+
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Navigation function
+        function navigateTo(page) {
+            const pages = {
+                'home': '2.homepage.html',
+                'practice-online': 'practice-online.html',
+                'gk-research': 'gk-research.html',
+                'qt-mentor': 'qt-mentor.html',
+                'lexa-chatbot': 'lexa-chatbot.html',
+                'generate-tests': 'generate-tests.html',
+                'progress': 'progress.html',
+                'settings': 'settings.html',
+                'appearance': 'appearance.html',
+                'trash': 'trash.html'
+            };
+
+            if (pages[page]) {
+                window.location.href = pages[page];
+            }
+        }
+
+        // Display current question
+        function displayQuestion() {
+            if (!currentTest || currentQuestionIndex >= currentTest.length) return;
+
+            const question = currentTest[currentQuestionIndex];
+            const container = document.getElementById('questionContainer');
+            
+            console.log('Displaying question:', question); // Debug log
+            
+            container.innerHTML = `
+                <div class="question-number">Question ${currentQuestionIndex + 1} of ${currentTest.length}</div>
+                <div class="passage">
+                    <div class="passage-title">Passage:</div>
+                    ${question.passage}
+                </div>
+                <div class="question">${question.question}</div>
+                <div class="options">
+                    ${question.options.map((option, index) => `
+                        <label class="option ${userAnswers[question.id] === index ? 'selected' : ''}" onclick="selectOption(${index})">
+                            <input type="radio" name="question-${question.id}" value="${index}" ${userAnswers[question.id] === index ? 'checked' : ''}>
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+
+            // Update progress
+            const progress = ((currentQuestionIndex + 1) / currentTest.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            
+            // Update question counter
+            document.getElementById('questionCounter').textContent = `Question ${currentQuestionIndex + 1} of ${currentTest.length}`;
+            
+            // Update navigation buttons
+            document.getElementById('prevButton').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextButton').style.display = currentQuestionIndex === currentTest.length - 1 ? 'none' : 'block';
+            document.getElementById('submitButton').style.display = currentQuestionIndex === currentTest.length - 1 ? 'block' : 'none';
+
+            // Start timer for this question
+            const section = testMetadata.section;
+            if (section && sectionConfig[section]) {
+                startTimer(sectionConfig[section].timePerQuestion);
+            }
+        }
+
+        // Select option
+        function selectOption(optionIndex) {
+            const question = currentTest[currentQuestionIndex];
+            userAnswers[question.id] = optionIndex;
+            
+            // Update UI
+            document.querySelectorAll('.option').forEach((option, index) => {
+                option.classList.toggle('selected', index === optionIndex);
+                const radio = option.querySelector('input[type="radio"]');
+                radio.checked = index === optionIndex;
+            });
+        }
+
+        // Navigation functions
+        function nextQuestion() {
+            if (currentQuestionIndex < currentTest.length - 1) {
+                stopTimer();
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                stopTimer();
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        // Submit test
+        function submitTest() {
+            stopTimer();
+            
+            let score = 0;
+            let totalQuestions = currentTest.length;
+            
+            currentTest.forEach(question => {
+                if (userAnswers[question.id] === question.correct) {
+                    score++;
+                }
+            });
+            
+            const percentage = Math.round((score / totalQuestions) * 100);
+            
+            alert(`Test Completed!\n\nScore: ${score}/${totalQuestions} (${percentage}%)\n\nCorrect Answers: ${score}\nIncorrect Answers: ${totalQuestions - score}`);
+            
+            startNewTest();
+        }
+
+        // Start new test
+        function startNewTest() {
+            stopTimer();
+            document.getElementById('testInterface').style.display = 'none';
+            document.getElementById('testGenerator').style.display = 'block';
+            currentTest = null;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            testMetadata = {};
+            
+            // Reset form
+            document.getElementById('testForm').reset();
+            document.getElementById('subcategory').disabled = true;
+            document.getElementById('subcategory').innerHTML = '<option value="">Select a subcategory</option>';
+            document.getElementById('passages').innerHTML = '<option value="">Select number of passages</option>';
+        }
+
+        // PDF Download Function
+        function downloadTestPDF() {
+            if (!currentTest || currentTest.length === 0) {
+                showError('No test available to download.');
+                return;
+            }
+
+            const downloadButton = document.getElementById('downloadButton');
+            downloadButton.classList.add('loading');
+            downloadButton.textContent = 'Generating PDF...';
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 20;
+                const lineHeight = 7;
+                let yPosition = margin;
+
+                function addWrappedText(text, x, y, maxWidth, fontSize = 12) {
+                    doc.setFontSize(fontSize);
+                    const lines = doc.splitTextToSize(text, maxWidth);
+                    doc.text(lines, x, y);
+                    return y + (lines.length * lineHeight);
+                }
+
+                function checkNewPage(requiredSpace) {
+                    if (yPosition + requiredSpace > pageHeight - margin) {
+                        doc.addPage();
+                        yPosition = margin;
+                    }
+                }
+
+                // Add header
+                doc.setFontSize(20);
+                doc.setFont(undefined, 'bold');
+                doc.text('CLAT Practice Test', pageWidth / 2, yPosition, { align: 'center' });
+                yPosition += 15;
+
+                // Add test info
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'normal');
+                const testInfoText = `${testMetadata.sectionName} - ${testMetadata.subcategoryName}`;
+                doc.text(testInfoText, pageWidth / 2, yPosition, { align: 'center' });
+                yPosition += 10;
+
+                doc.setFontSize(12);
+                const detailsText = `${testMetadata.passages} Passage${testMetadata.passages > 1 ? 's' : ''} • ${currentTest.length} Question${currentTest.length > 1 ? 's' : ''}`;
+                doc.text(detailsText, pageWidth / 2, yPosition, { align: 'center' });
+                yPosition += 15;
+
+                // Add questions
+                let currentPassage = '';
+                let passageNumber = 1;
+                let questionNumber = 1;
+
+                currentTest.forEach((question, index) => {
+                    checkNewPage(80);
+
+                    if (question.passage !== currentPassage) {
+                        currentPassage = question.passage;
+                        
+                        doc.setFont(undefined, 'bold');
+                        doc.setFontSize(14);
+                        yPosition = addWrappedText(`Passage ${passageNumber}:`, margin, yPosition, pageWidth - 2 * margin);
+                        yPosition += 5;
+
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(11);
+                        yPosition = addWrappedText(question.passage, margin, yPosition, pageWidth - 2 * margin);
+                        yPosition += 10;
+                        
+                        passageNumber++;
+                    }
+
+                    checkNewPage(50);
+
+                    doc.setFont(undefined, 'bold');
+                    doc.setFontSize(12);
+                    yPosition = addWrappedText(`${questionNumber}. ${question.question}`, margin, yPosition, pageWidth - 2 * margin);
+                    yPosition += 5;
+
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(11);
+                    question.options.forEach((option, optionIndex) => {
+                        const optionLetter = String.fromCharCode(65 + optionIndex);
+                        yPosition = addWrappedText(`   ${optionLetter}. ${option}`, margin, yPosition, pageWidth - 2 * margin);
+                        yPosition += 3;
+                    });
+                    
+                    yPosition += 8;
+                    questionNumber++;
+                });
+
+                const fileName = `CLAT_${testMetadata.sectionName}_${testMetadata.subcategoryName}_${new Date().toISOString().split('T')[0]}.pdf`;
+                doc.save(fileName);
+
+                setTimeout(() => {
+                    showSuccess('Test PDF downloaded successfully!');
+                }, 500);
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                showError('Error generating PDF. Please try again.');
+            } finally {
+                downloadButton.classList.remove('loading');
+                downloadButton.innerHTML = '📄 Download Test PDF';
+            }
+        }
+
+        // Form submission handler
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const section = document.getElementById('section').value;
+            const subcategory = document.getElementById('subcategory').value;
+            const passages = parseInt(document.getElementById('passages').value);
+            
+            if (!section || !subcategory || !passages) {
+                showError('Please fill in all fields to generate your test.');
+                return;
+            }
+
+            testMetadata = {
+                section: section,
+                subcategory: subcategory,
+                passages: passages,
+                sectionName: section.charAt(0).toUpperCase() + section.slice(1),
+                subcategoryName: subcategory.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+            };
+
+            const buildButton = document.getElementById('buildButton');
+            const buttonText = document.getElementById('buttonText');
+            
+            buildButton.classList.add('loading');
+            buttonText.textContent = 'Generating Test...';
+            buildButton.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/generate-test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        section: section,
+                        subcategory: subcategory,
+                        passages: passages
+                    })
+                });
+
+                const data = await response.json();
+                console.log('API Response:', data); // Debug log
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate test');
+                }
+
+                if (!data.success || !data.test || data.test.length === 0) {
+                    throw new Error('No questions generated for this configuration');
+                }
+
+                currentTest = data.test;
+
+                document.getElementById('testGenerator').style.display = 'none';
+                document.getElementById('testInterface').style.display = 'block';
+                
+                document.getElementById('testTitle').textContent = `${testMetadata.sectionName} Test`;
+                document.getElementById('testInfo').textContent = `${testMetadata.subcategoryName} • ${passages} Passage${passages > 1 ? 's' : ''} • ${currentTest.length} Question${currentTest.length > 1 ? 's' : ''}`;
+                
+                currentQuestionIndex = 0;
+                userAnswers = {};
+                
+                displayQuestion();
+                showSuccess('Test generated successfully!');
+
+            } catch (error) {
+                console.error('Error generating test:', error);
+                showError(error.message || 'Failed to generate test. Please try again.');
+            } finally {
+                buildButton.classList.remove('loading');
+                buttonText.textContent = 'Build Test';
+                buildButton.disabled = false;
+            }
+        });
+
+        // Initialize page
+        window.addEventListener('load', function() {
+const username1 = localStorage.getItem('username') || 'Student';
+            document.querySelector('.greeting').textContent = `Hey ${username, username1}! 👋`;
+        });
+    </script>
+</body>
+</html>

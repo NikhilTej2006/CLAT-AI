@@ -1,31 +1,49 @@
-# 🧠 Generate Tests & Practice Online
+# 🧠 AI-Powered Test Platform – Generate Tests | Practice Online | QT-Mentor
 
-An AI-powered test generation and practice platform that allows users to create customized quizzes using **LLMs via the Ollama API**, and practice them interactively through a clean web interface. Built with **Flask** on the backend, this project provides real-time, intelligent, and engaging assessments — ideal for students, educators, and exam aspirants.
+An end-to-end intelligent quiz generation and practice platform developed during my internship at **TARS Networks**, built to simplify and personalize test preparation using **LLMs via Groq API**. This platform includes three major modules:
+
+1. ✅ **Generate Tests** – Create topic-based MCQs on-demand using Groq API  
+2. 🧪 **Practice Online** – Attempt generated quizzes with instant feedback  
+3. 🤖 **QT-Mentor** – A smart assistant to explain answers and mentor users through concepts
 
 ---
 
-## 📚 Overview
+## 📚 Project Overview
 
-Manual test creation can be time-consuming and repetitive. This project solves that problem by integrating **Large Language Models** using the **Ollama API**, enabling dynamic generation of topic-based multiple-choice questions (MCQs). With a user-friendly interface and real-time feedback, users can both generate and practice tests instantly.
+This platform aims to automate and enhance the way students prepare for competitive exams like **CLAT**, Aptitude Tests, and Technical Interviews by leveraging **AI-driven content generation** and a seamless practice interface.
 
 ---
 
 ## 🎯 Key Features
 
-- 🧠 **LLM-Driven Generation** – Generates high-quality questions based on input topics.
-- ✍️ **Custom Inputs** – Choose topic, number of questions, and difficulty level.
-- ⚙️ **Flask-Powered Backend** – RESTful APIs handle test generation and evaluation.
-- 💬 **Practice Mode** – Users can attempt quizzes in-browser with immediate feedback.
-- 📈 **Real-Time Feedback** – Scores and answer validations provided instantly.
+### ✅ Generate Tests
+- Enter any topic or concept (e.g., "Operating Systems", "Legal Reasoning")
+- Instantly generate multiple-choice questions using **Groq API**
+- Customize number of questions
+- Delivered via clean, structured REST API
+
+### 🧪 Practice Online
+- Attempt the generated MCQs interactively
+- Receive real-time feedback on each answer
+- Tracks score and provides an intuitive solving experience
+- Fully connected to the Generate module
+
+### 🤖 QT-Mentor
+- AI-powered assistant built with Groq API
+- Provides explanations and learning support for each question
+- Helps users understand **why** an answer is correct or not
+- Bridges the gap between assessment and conceptual clarity
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: HTML, CSS, JavaScript  
-- **Backend**: Python, Flask  
-- **AI Integration**: Ollama API (LLM for question generation)  
-- **API Format**: REST (JSON responses)
+| Layer        | Technology                     |
+|--------------|-------------------------------|
+| **Backend**  | Python, Flask                  |
+| **AI Engine**| Groq API (LLM-based generation & mentoring) |
+| **Frontend** | HTML, CSS, JavaScript          |
+| **APIs**     | RESTful endpoints for test generation, scoring & explanation
 
 ---
 
@@ -33,7 +51,5 @@ Manual test creation can be time-consuming and repetitive. This project solves t
 
 ### 1. Clone the Repository
 
-```bash[
-git clone:(https://github.com/NikhilTej2006/CLAT-AI.git)]
-
- The app.py file serves as the central Flask backend and is responsible for routing and handling both generate-test.html (test creation) and practice.html (test attempt interface) via defined API endpoints or template rendering.
+```bash
+git clone[(https://github.com/NikhilTej2006/CLAT-AI.git)]
